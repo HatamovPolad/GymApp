@@ -1,15 +1,32 @@
+using Microsoft.EntityFrameworkCore;
+using GymApp.Data;
+using Microsoft.AspNetCore.Authentication.Cookies; // Basit giriş için gerekli
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// 1. Veritabanı Bağlantısı
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Bağlantı adresi bulunamadı.");
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+
+// 2. Basit Çerez (Cookie) Bazlı Giriş Sistemi
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login"; // Giriş yapmamış kişiyi buraya at
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Yetkisi yetmeyeni buraya at
+    });
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Hata Ayıklama
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -18,6 +35,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Önce kimlik doğrulama, sonra yetkilendirme
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
