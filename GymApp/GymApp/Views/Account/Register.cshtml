@@ -1,31 +1,38 @@
-﻿@model GymApp.Models.User
-@{
+﻿@{
     ViewData["Title"] = "Kayıt Ol";
 }
 
 <div class="row justify-content-center mt-5">
     <div class="col-md-4">
         <div class="card shadow">
-            <div class="card-header bg-success text-white text-center"><h3>Kayıt Ol</h3></div>
+            <div class="card-header bg-success text-white text-center">
+                <h3>Kayıt Ol</h3>
+            </div>
             <div class="card-body">
-                <form method="post">
+
+                <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+                <form method="post" asp-action="Register" asp-controller="Account">
                     <div class="mb-3">
-                        <label>Ad Soyad</label>
-                        <input asp-for="FullName" class="form-control" />
-                        <span asp-validation-for="FullName" class="text-danger"></span>
+                        <label class="form-label">Ad Soyad</label>
+                        <input type="text" name="fullName" class="form-control" required />
                     </div>
+
                     <div class="mb-3">
-                        <label>E-Posta</label>
-                        <input asp-for="Email" class="form-control" />
-                        <span asp-validation-for="Email" class="text-danger"></span>
+                        <label class="form-label">E-Posta</label>
+                        <input type="email" name="email" class="form-control" required />
                     </div>
+
                     <div class="mb-3">
-                        <label>Şifre</label>
-                        <input asp-for="Password" type="password" class="form-control" />
-                        <span asp-validation-for="Password" class="text-danger"></span>
+                        <label class="form-label">Şifre</label>
+                        <input type="password" name="password" class="form-control" required />
                     </div>
+
                     <button type="submit" class="btn btn-success w-100">Kayıt Ol</button>
                 </form>
+            </div>
+            <div class="card-footer text-center">
+                <small>Zaten hesabın var mı? <a asp-action="Login" asp-controller="Account">Giriş Yap</a></small>
             </div>
         </div>
     </div>
