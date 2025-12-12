@@ -88,12 +88,32 @@ namespace GymApp.Controllers
             appointment.CreatedDate = DateTime.Now;
             appointment.Status = "Bekliyor";
 
-            // 3. Tarih kontrolü
+            // --- KURAL 1: GEÇMİŞ ZAMAN KONTROLÜ ---
             if (appointment.Date <= DateTime.Now)
             {
                 ModelState.AddModelError("Date", "Geçmiş bir tarihe randevu alamazsınız.");
             }
 
+            // --- KURAL 2: ÇALIŞMA SAATLERİ KONTROLÜ (09:00 - 23:00) ---
+            // Saat 9'dan küçükse VEYA 23'ten büyük/eşitse hata ver.
+            if (appointment.Date.Hour < 9 || appointment.Date.Hour >= 23)
+            {
+                ModelState.AddModelError("Date", "Spor salonumuz sadece 09:00 - 23:00 saatleri arasında hizmet vermektedir.");
+            }
+
+            // --- KURAL 3: ÇAKIŞMA KONTROLÜ (HOCA DOLU MU?) ---
+            // Aynı hocaya, aynı saatte, iptal edilmemiş başka randevu var mı?
+            bool isTrainerBusy = _context.Appointments.Any(a =>
+                a.TrainerId == appointment.TrainerId &&
+                a.Date == appointment.Date &&
+                a.Status != "İptal Edildi");
+
+            if (isTrainerBusy)
+            {
+                ModelState.AddModelError("", "Seçtiğiniz antrenörün bu saatte başka bir randevusu var. Lütfen başka bir saat seçiniz.");
+            }
+
+            // Eğer hiçbir hata yoksa (Valid) kaydet
             if (ModelState.IsValid)
             {
                 _context.Add(appointment);
@@ -101,7 +121,7 @@ namespace GymApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Hata varsa listeleri tekrar doldur
+            // Hata varsa (Mesela saat 03:00 seçtiyse) formu tekrar doldurup göster
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "Id", "FullName", appointment.TrainerId);
             ViewData["GymServiceId"] = new SelectList(_context.GymServices, "ServiceId", "ServiceName", appointment.GymServiceId);
 
@@ -201,7 +221,31 @@ namespace GymApp.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+        // --- ONAYLAMA VE İPTAL İŞLEMLERİ (SADECE ADMIN) ---
 
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null) return NotFound();
+
+            appointment.Status = "Onaylandı"; // Durumu değiştir
+            await _context.SaveChangesAsync(); // Kaydet
+
+            return RedirectToAction(nameof(Index)); // Listeye dön
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var appointment = await _context.Appointments.FindAsync(id);
+            if (appointment == null) return NotFound();
+
+            appointment.Status = "İptal Edildi"; // Durumu değiştir
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+        }
         private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.Id == id);

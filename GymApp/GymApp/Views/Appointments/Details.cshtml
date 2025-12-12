@@ -5,39 +5,65 @@
 }
 
 <div class="container mt-5">
-    <div class="card shadow">
-        <div class="card-header bg-info text-white">
-            <h4 class="mb-0">ℹ️ Randevu Detayları</h4>
-        </div>
-        <div class="card-body">
-            <dl class="row fs-5">
-                <dt class="col-sm-4 text-muted">Randevu Tarihi:</dt>
-                <dd class="col-sm-8 fw-bold">@Model.Date.ToString("dd MMMM yyyy HH:mm")</dd>
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">ℹ️ Randevu Detayları</h4>
+                </div>
 
-                <dt class="col-sm-4 text-muted">Durum:</dt>
-                <dd class="col-sm-8">
-                    <span class="badge bg-secondary">@Model.Status</span>
-                </dd>
+                <div class="card-body p-4">
+                    <dl class="row fs-5">
+                        <dt class="col-sm-4 text-muted">Randevu Tarihi:</dt>
+                        <dd class="col-sm-8 fw-bold text-primary">
+                            @Model.Date.ToString("dd MMMM yyyy HH:mm")
+                        </dd>
 
-                <dt class="col-sm-4 text-muted">Oluşturulma Tarihi:</dt>
-                <dd class="col-sm-8">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</dd>
+                        <dt class="col-sm-4 text-muted">Durum:</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.Status == "Bekliyor")
+                            {
+                                <span class="badge bg-warning text-dark">⏳ Bekliyor</span>
+                            }
+                            else if (Model.Status == "Onaylandı")
+                            {
+                                <span class="badge bg-success">✅ Onaylandı</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">@Model.Status</span>
+                            }
+                        </dd>
 
-                <dt class="col-sm-4 text-muted">Üye (User):</dt>
-                <dd class="col-sm-8">@Model.User?.UserName</dd>
+                        <dt class="col-sm-4 text-muted">Oluşturulma:</dt>
+                        <dd class="col-sm-8 text-muted" style="font-size: 0.9rem;">
+                            @Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")
+                        </dd>
 
-                <dt class="col-sm-4 text-muted">Antrenör:</dt>
-                <dd class="col-sm-8">@Model.Trainer?.FullName</dd>
+                        <hr class="my-3">
 
-                <dt class="col-sm-4 text-muted">Hizmet:</dt>
-                <dd class="col-sm-8">@Model.GymService?.ServiceName</dd>
-            </dl>
-        </div>
-        <div class="card-footer text-center">
-            @if (User.IsInRole("Admin"))
-            {
-                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Düzenle</a>
-            }
-            <a asp-action="Index" class="btn btn-secondary">Geri Dön</a>
+                        <dt class="col-sm-4 text-muted">Üye (Kullanıcı):</dt>
+                        <dd class="col-sm-8">@Model.User?.UserName</dd>
+
+                        <dt class="col-sm-4 text-muted">Antrenör:</dt>
+                        <dd class="col-sm-8 fw-bold">@Model.Trainer?.FullName</dd>
+
+                        <dt class="col-sm-4 text-muted">Hizmet:</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-info text-dark">@Model.GymService?.ServiceName</span>
+                        </dd>
+                    </dl>
+                </div>
+
+                <div class="card-footer text-center bg-light">
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning px-4">✏️ Düzenle</a>
+                    }
+
+                    <a asp-action="Index" class="btn btn-outline-secondary px-4">🔙 Listeye Dön</a>
+                </div>
+            </div>
         </div>
     </div>
 </div>
