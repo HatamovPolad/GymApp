@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; // Bu kütüphane gerekli
 
 namespace GymApp.Models
 {
@@ -8,18 +7,22 @@ namespace GymApp.Models
         [Key]
         public int ServiceId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Hizmet adı zorunludur.")]
         [Display(Name = "Hizmet Adı")]
         public string ServiceName { get; set; }
 
+        [Display(Name = "Açıklama")]
+        public string? Description { get; set; }
+
+        // SQL'de Duration değil, DurationMinutes olduğu için değiştirdik:
+        [Required(ErrorMessage = "Süre girmek zorunludur.")]
         [Display(Name = "Süre (Dakika)")]
+        [Range(1, 480, ErrorMessage = "Süre en az 1 dakika olmalıdır.")]
         public int DurationMinutes { get; set; }
 
-        [Display(Name = "Ücret")]
-        [Column(TypeName = "decimal(18,2)")] // BU SATIRI EKLEDİK: Toplam 18 basamak, 2'si virgülden sonra (kuruş)
+        [Required(ErrorMessage = "Ücret girmek zorunludur.")]
+        [Display(Name = "Ücret (TL)")]
+        [Range(0, 100000, ErrorMessage = "Ücret 0'dan küçük olamaz.")]
         public decimal Price { get; set; }
-
-        // İlişkiler
-        public ICollection<Appointment>? Appointments { get; set; }
     }
 }

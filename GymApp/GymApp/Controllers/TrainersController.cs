@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization; // Yetkilendirme için şart
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using GymApp.Data;
 using GymApp.Models;
@@ -19,42 +15,40 @@ namespace GymApp.Controllers
             _context = context;
         }
 
-        // GET: Trainers
+        // 1. LİSTELEME: Herkes görebilir
         public async Task<IActionResult> Index()
         {
             return View(await _context.Trainers.ToListAsync());
         }
 
-        // GET: Trainers/Details/5
+        // 2. DETAY: Herkes görebilir
         public async Task<IActionResult> Details(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var trainer = await _context.Trainers
-                .FirstOrDefaultAsync(m => m.TrainerId == id);
-            if (trainer == null)
-            {
-                return NotFound();
-            }
+                .FirstOrDefaultAsync(m => m.Id == id); // TrainerId yerine Id kullandık
+
+            if (trainer == null) return NotFound();
 
             return View(trainer);
         }
 
-        // GET: Trainers/Create
+        // ==========================================
+        // YÖNETİCİ İŞLEMLERİ (SADECE ADMIN)
+        // ==========================================
+
+        // 3. EKLEME (CREATE)
+        [Authorize(Roles = "Admin")] // KİLİT
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Trainers/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("TrainerId,FullName,Expertise,ImageUrl")] Trainer trainer)
+        [Authorize(Roles = "Admin")] // KİLİT
+        public async Task<IActionResult> Create([Bind("Id,FullName,Specialization")] Trainer trainer)
         {
             if (ModelState.IsValid)
             {
@@ -65,33 +59,23 @@ namespace GymApp.Controllers
             return View(trainer);
         }
 
-        // GET: Trainers/Edit/5
+        // 4. DÜZENLEME (EDIT)
+        [Authorize(Roles = "Admin")] // KİLİT
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var trainer = await _context.Trainers.FindAsync(id);
-            if (trainer == null)
-            {
-                return NotFound();
-            }
+            if (trainer == null) return NotFound();
             return View(trainer);
         }
 
-        // POST: Trainers/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("TrainerId,FullName,Expertise,ImageUrl")] Trainer trainer)
+        [Authorize(Roles = "Admin")] // KİLİT
+        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Specialization")] Trainer trainer)
         {
-            if (id != trainer.TrainerId)
-            {
-                return NotFound();
-            }
+            if (id != trainer.Id) return NotFound();
 
             if (ModelState.IsValid)
             {
@@ -102,41 +86,30 @@ namespace GymApp.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!TrainerExists(trainer.TrainerId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    if (!TrainerExists(trainer.Id)) return NotFound();
+                    else throw;
                 }
                 return RedirectToAction(nameof(Index));
             }
             return View(trainer);
         }
 
-        // GET: Trainers/Delete/5
+        // 5. SİLME (DELETE)
+        [Authorize(Roles = "Admin")] // KİLİT
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
             var trainer = await _context.Trainers
-                .FirstOrDefaultAsync(m => m.TrainerId == id);
-            if (trainer == null)
-            {
-                return NotFound();
-            }
+                .FirstOrDefaultAsync(m => m.Id == id);
+            if (trainer == null) return NotFound();
 
             return View(trainer);
         }
 
-        // POST: Trainers/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")] // KİLİT
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var trainer = await _context.Trainers.FindAsync(id);
@@ -151,7 +124,7 @@ namespace GymApp.Controllers
 
         private bool TrainerExists(int id)
         {
-            return _context.Trainers.Any(e => e.TrainerId == id);
+            return _context.Trainers.Any(e => e.Id == id);
         }
     }
 }

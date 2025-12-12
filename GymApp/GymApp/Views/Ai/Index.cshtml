@@ -1,0 +1,64 @@
+﻿@{
+    ViewData["Title"] = "AI Antrenör";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-lg border-0">
+                <div class="card-header bg-dark text-white text-center py-4">
+                    <h2>🤖 AI Akıllı Antrenör</h2>
+                    <p class="mb-0">Bilgilerini gir, yapay zeka sana özel program hazırlasın!</p>
+                </div>
+
+                <div class="card-body p-5">
+
+                    <form asp-action="GeneratePlan" method="post">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Yaşınız</label>
+                                <input type="number" name="age" class="form-control" required placeholder="Örn: 25" min="10" max="90" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Boyunuz (cm)</label>
+                                <input type="number" name="height" class="form-control" required placeholder="Örn: 175" min="100" max="250" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Kilonuz (kg)</label>
+                                <input type="number" name="weight" class="form-control" required placeholder="Örn: 75" min="30" max="200" />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Hedefiniz Nedir?</label>
+                            <select name="goal" class="form-select">
+                                <option value="lose_weight">🏃 Kilo Vermek / Yağ Yakmak</option>
+                                <option value="build_muscle">💪 Kas Yapmak / Hacim</option>
+                                <option value="stay_fit">🧘 Formu Korumak / Sağlık</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fs-5">
+                            ✨ Analiz Et ve Program Oluştur
+                        </button>
+                    </form>
+                    @if (ViewBag.Plan != null)
+                    {
+                        <div class="alert alert-success mt-5 border-2 shadow">
+                            <h4 class="alert-heading text-center">🎉 Analiz Tamamlandı!</h4>
+
+                            <div class="text-center mb-3">
+                                <span class="badge bg-warning text-dark fs-6">📊 @ViewBag.Status</span>
+                            </div>
+                            <hr>
+
+                            <p><strong>🏋️‍♂️ Önerilen Program:</strong> @ViewBag.Plan</p>
+                            <p><strong>🥗 Beslenme Tavsiyesi:</strong> @ViewBag.Diet</p>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

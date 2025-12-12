@@ -4,21 +4,12 @@ namespace GymApp.Models
 {
     public class Trainer
     {
-        [Key]
-        public int TrainerId { get; set; }
+        public int Id { get; set; } // TrainerId DEĞİL, sadece Id olmalı
 
-        [Required(ErrorMessage = "Ad Soyad zorunludur.")]
         [Display(Name = "Ad Soyad")]
         public string FullName { get; set; }
 
-        [Required]
         [Display(Name = "Uzmanlık Alanı")]
-        public string Expertise { get; set; }
-
-        [Display(Name = "Fotoğraf Yolu")]
-        public string? ImageUrl { get; set; }
-
-        // İlişkiler
-        public ICollection<Appointment>? Appointments { get; set; }
+        public string Specialization { get; set; } // Expertise DEĞİL, Specialization olmalı
     }
 }

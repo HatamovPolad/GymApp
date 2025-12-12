@@ -1,0 +1,43 @@
+﻿@model GymApp.Models.Appointment
+
+@{
+    ViewData["Title"] = "Randevu Detayı";
+}
+
+<div class="container mt-5">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h4 class="mb-0">ℹ️ Randevu Detayları</h4>
+        </div>
+        <div class="card-body">
+            <dl class="row fs-5">
+                <dt class="col-sm-4 text-muted">Randevu Tarihi:</dt>
+                <dd class="col-sm-8 fw-bold">@Model.Date.ToString("dd MMMM yyyy HH:mm")</dd>
+
+                <dt class="col-sm-4 text-muted">Durum:</dt>
+                <dd class="col-sm-8">
+                    <span class="badge bg-secondary">@Model.Status</span>
+                </dd>
+
+                <dt class="col-sm-4 text-muted">Oluşturulma Tarihi:</dt>
+                <dd class="col-sm-8">@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</dd>
+
+                <dt class="col-sm-4 text-muted">Üye (User):</dt>
+                <dd class="col-sm-8">@Model.User?.UserName</dd>
+
+                <dt class="col-sm-4 text-muted">Antrenör:</dt>
+                <dd class="col-sm-8">@Model.Trainer?.FullName</dd>
+
+                <dt class="col-sm-4 text-muted">Hizmet:</dt>
+                <dd class="col-sm-8">@Model.GymService?.ServiceName</dd>
+            </dl>
+        </div>
+        <div class="card-footer text-center">
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">Düzenle</a>
+            }
+            <a asp-action="Index" class="btn btn-secondary">Geri Dön</a>
+        </div>
+    </div>
+</div>

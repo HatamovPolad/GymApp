@@ -1,28 +1,48 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema; // Bu kütüphane gerekli
 
 namespace GymApp.Models
 {
     public class Appointment
     {
-        [Key]
-        public int AppointmentId { get; set; }
+        public int Id { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Lütfen bir tarih seçiniz.")]
         [Display(Name = "Randevu Tarihi")]
-        public DateTime AppointmentDate { get; set; }
+        public DateTime Date { get; set; }
 
-        public bool IsConfirmed { get; set; } = false;
+        [Display(Name = "Durum")]
+        public string Status { get; set; } = "Bekliyor"; // Bekliyor, Onaylandı, Reddedildi
 
-        // İlişkiler
+        [Display(Name = "Oluşturulma Tarihi")]
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+
+        // --- İLİŞKİLER ---
+
+        // 1. ÜYE (IdentityUser)
+        [Display(Name = "Üye")]
+        public string? UserId { get; set; }
+        [ForeignKey("UserId")]
+        public IdentityUser? User { get; set; }
+
+        // 2. ANTRENÖR (Trainer)
         [Display(Name = "Antrenör")]
+        [Required(ErrorMessage = "Lütfen antrenör seçiniz.")]
         public int TrainerId { get; set; }
-        public Trainer Trainer { get; set; }
 
+        [ForeignKey("TrainerId")]
+        public Trainer? Trainer { get; set; }
+
+        // 3. HİZMET (GymService)
         [Display(Name = "Hizmet")]
-        public int ServiceId { get; set; }
-        public GymService GymService { get; set; }
+        [Required(ErrorMessage = "Lütfen hizmet seçiniz.")]
+        public int GymServiceId { get; set; }
 
-        // Üye ID'si (Identity sistemi bağlanınca dolacak)
-        public string? MemberId { get; set; }
+        // DİKKAT: GymService tablosunun anahtarı 'ServiceId' olduğu için bunu belirtmemiz gerekebilir
+        // Ama EF Core genelde GymServiceId ismini ServiceId ile eşleştiremeyebilir.
+        // En garantisi ForeignKey attribute'u kullanmak.
+        [ForeignKey("GymServiceId")]
+        public GymService? GymService { get; set; }
     }
 }

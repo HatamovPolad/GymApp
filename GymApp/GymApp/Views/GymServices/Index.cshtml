@@ -1,47 +1,65 @@
 ﻿@model IEnumerable<GymApp.Models.GymService>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Salon Hizmetleri";
 }
 
-<h1>Index</h1>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>🏋️‍♂️ Salon Hizmetlerimiz</h2>
+        
+        @if (User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Yeni Hizmet Ekle
+            </a>
+        }
+    </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.ServiceName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.DurationMinutes)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Price)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.ServiceName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.DurationMinutes)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Price)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.ServiceId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ServiceId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ServiceId">Delete</a>
-            </td>
-        </tr>
-}
-    </tbody>
-</table>
+    <table class="table table-hover shadow-sm">
+        <thead class="table-light">
+            <tr>
+                <th>Hizmet Adı</th>
+                <th>Açıklama</th>
+                <th>Süre (Dk)</th>
+                <th>Ücret</th>
+                <th>İşlemler</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td class="fw-bold">
+                        @Html.DisplayFor(modelItem => item.ServiceName)
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.Description) && item.Description.Length > 50)
+                        {
+                            @item.Description.Substring(0, 50) <span>...</span>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelItem => item.Description)
+                        }
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DurationMinutes) dk
+                    </td>
+                    <td>
+                        <span class="badge bg-success">@item.Price TL</span>
+                    </td>
+                    <td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-action="Edit" asp-route-id="@item.ServiceId" class="btn btn-sm btn-warning">Düzenle</a>
+                            <a asp-action="Delete" asp-route-id="@item.ServiceId" class="btn btn-sm btn-danger">Sil</a>
+                        }
+                        
+                        <a asp-action="Details" asp-route-id="@item.ServiceId" class="btn btn-sm btn-info text-white">Detay</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
