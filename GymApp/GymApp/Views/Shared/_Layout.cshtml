@@ -19,7 +19,6 @@
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
 
                     <ul class="navbar-nav flex-grow-1">
@@ -35,32 +34,32 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="GymServices" asp-action="Index">Hizmetler</a>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-success fw-bold" asp-controller="Ai" asp-action="Index">🤖 AI Antrenör</a>
-                        </li>
 
                         @if (User.Identity.IsAuthenticated)
                         {
+                            // EĞER ADMİN DEĞİLSE (SADECE ÜYEYSE) BUNLARI GÖRSÜN
                             if (!User.IsInRole("Admin"))
                             {
-                                // SADECE ÜYELER GÖRSÜN
                                 <li class="nav-item ms-3">
                                     <a class="nav-link text-primary fw-bold border border-primary rounded px-3" asp-controller="Appointments" asp-action="Create">📅 Randevu Al</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link text-dark" asp-controller="Appointments" asp-action="Index">Randevularım</a>
                                 </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-success fw-bold" asp-controller="Ai" asp-action="Index">🤖 AI Antrenör</a>
+                                </li>
                             }
                             else
                             {
-                                // SADECE ADMİN GÖRSÜN
+                                // EĞER ADMİN İSE SADECE BUNLARI GÖRSÜN
                                 <li class="nav-item ms-3">
                                     <a class="nav-link text-dark fw-bold" asp-controller="Appointments" asp-action="Index">📋 Tüm Randevular</a>
                                 </li>
                             }
                         }
                     </ul>
-
                     @if (User.IsInRole("Admin"))
                     {
                         <div class="position-absolute start-50 translate-middle-x d-none d-md-block">

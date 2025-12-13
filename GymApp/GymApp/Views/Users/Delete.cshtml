@@ -1,0 +1,19 @@
+﻿@model Microsoft.AspNetCore.Identity.IdentityUser
+
+@{
+    ViewData["Title"] = "Üye Sil";
+}
+
+<div class="container mt-5">
+    <div class="alert alert-danger">
+        <h3>⚠️ Bu üyeyi silmek istediğine emin misin?</h3>
+        <p><strong>Kullanıcı:</strong> @Model.UserName</p>
+        <p>Bu işlem geri alınamaz ve üyeye ait tüm randevular da silinebilir.</p>
+
+        <form asp-action="Delete">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-danger">Evet, Sil</button>
+            <a asp-action="Index" class="btn btn-secondary">İptal</a>
+        </form>
+    </div>
+</div>

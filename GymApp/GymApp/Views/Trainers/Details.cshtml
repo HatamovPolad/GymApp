@@ -4,49 +4,38 @@
     ViewData["Title"] = "Antrenör Detayı";
 }
 
-<div class="container mt-4">
-    <div class="card shadow-sm">
+<div class="container mt-5">
+    <div class="card shadow">
         <div class="card-header bg-info text-white">
-            <h3>Antrenör Detayları</h3>
+            <h3 class="mb-0">ℹ️ Antrenör Bilgileri</h3>
         </div>
         <div class="card-body">
-            <div class="row align-items-center">
+            <dl class="row fs-5">
+                <dt class="col-sm-4 text-muted">Ad Soyad:</dt>
+                <dd class="col-sm-8 fw-bold">@Model.FullName</dd>
 
-                <div class="col-md-4 text-center mb-3 mb-md-0">
-                    <img src="https://ui-avatars.com/api/?name=@Model.FullName&background=random&size=250&font-size=0.33"
-                         class="img-fluid rounded-circle shadow"
-                         alt="@Model.FullName Profile">
-                </div>
+                <dt class="col-sm-4 text-muted">Uzmanlık Alanı:</dt>
+                <dd class="col-sm-8">@Model.Specialization</dd>
 
-                <div class="col-md-8">
-                    <dl class="row fs-5">
-                        <dt class="col-sm-4 text-muted">
-                            Ad Soyad:
-                        </dt>
-                        <dd class="col-sm-8 fw-bold">
-                            @Html.DisplayFor(model => model.FullName)
-                        </dd>
+                <hr class="my-3">
 
-                        <dt class="col-sm-4 text-muted">
-                            Uzmanlık Alanı:
-                        </dt>
-                        <dd class="col-sm-8">
-                            <span class="badge bg-secondary">
-                                @Html.DisplayFor(model => model.Specialization)
-                            </span>
-                        </dd>
-                    </dl>
+                <dt class="col-sm-4 text-muted">Mesai Başlangıç:</dt>
+                <dd class="col-sm-8 fw-bold text-success">
+                    @Model.WorkStartTime.ToString(@"hh\:mm")
+                </dd>
 
-                    <div class="mt-4">
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning px-4 me-2">
-                                ✏️ Düzenle
-                            </a>
-                        }
-
-                        <a asp-action="Index" class="btn btn-outline-secondary px-4">
-                            🔙 Listeye Dön
-                        </a>
-                    </div>
-                </div>
+                <dt class="col-sm-4 text-muted">Mesai Bitiş:</dt>
+                <dd class="col-sm-8 fw-bold text-danger">
+                    @Model.WorkEndTime.ToString(@"hh\:mm")
+                </dd>
+            </dl>
+        </div>
+        <div class="card-footer text-center">
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-warning">✏️ Düzenle</a>
+            }
+            <a asp-action="Index" class="btn btn-secondary">🔙 Listeye Dön</a>
+        </div>
+    </div>
+</div>

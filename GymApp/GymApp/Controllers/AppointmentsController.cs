@@ -39,7 +39,8 @@ namespace GymApp.Controllers
                 gymContext = gymContext.Where(a => a.UserId == userId);
             }
 
-            return View(await gymContext.ToListAsync());
+            // Tarihe göre sıralayalım (En yakın tarih en üstte)
+            return View(await gymContext.OrderByDescending(a => a.Date).ToListAsync());
         }
 
         // 2. DETAY (DETAILS)
@@ -75,45 +76,78 @@ namespace GymApp.Controllers
             return View();
         }
 
-        // 3. OLUŞTURMA (CREATE) - POST
+        // 3. OLUŞTURMA (CREATE) - POST 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Date,TrainerId,GymServiceId")] Appointment appointment)
         {
-            // 1. Giriş yapan kullanıcının ID'sini al
+            // 1. Kullanıcıyı Bul
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             appointment.UserId = userId;
-
-            // 2. Otomatik değerleri ata
             appointment.CreatedDate = DateTime.Now;
             appointment.Status = "Bekliyor";
 
-            // --- KURAL 1: GEÇMİŞ ZAMAN KONTROLÜ ---
+            // 2. Geçmiş Tarih Kontrolü
             if (appointment.Date <= DateTime.Now)
             {
                 ModelState.AddModelError("Date", "Geçmiş bir tarihe randevu alamazsınız.");
             }
 
-            // --- KURAL 2: ÇALIŞMA SAATLERİ KONTROLÜ (09:00 - 23:00) ---
-            // Saat 9'dan küçükse VEYA 23'ten büyük/eşitse hata ver.
-            if (appointment.Date.Hour < 9 || appointment.Date.Hour >= 23)
+            // --- KRİTİK HESAPLAMA BÖLÜMÜ ---
+            var selectedService = await _context.GymServices.FindAsync(appointment.GymServiceId);
+            var selectedTrainer = await _context.Trainers.FindAsync(appointment.TrainerId);
+
+            if (selectedService != null && selectedTrainer != null)
             {
-                ModelState.AddModelError("Date", "Spor salonumuz sadece 09:00 - 23:00 saatleri arasında hizmet vermektedir.");
+                // Başlangıç ve Bitiş Saatlerini Hesapla
+                DateTime startTime = appointment.Date;
+                DateTime endTime = startTime.AddMinutes(selectedService.DurationMinutes);
+
+                // SALON KURALLARI (Sabit: 09:00 - 23:00)
+                TimeSpan salonAcilis = new TimeSpan(9, 0, 0);
+                TimeSpan salonKapanis = new TimeSpan(23, 0, 0);
+
+                // KURAL 1: GÜN DEĞİŞİMİ VE SALON KAPANIŞ KONTROLÜ
+                // Eğer bitiş saati başlangıç gününden farklıysa (gece yarısını geçmişse) VEYA 23:00'ü geçmişse
+                if (endTime.Date > startTime.Date || endTime.TimeOfDay > salonKapanis || startTime.TimeOfDay < salonAcilis)
+                {
+                    ModelState.AddModelError("Date",
+                        $"Salonumuz 09:00 - 23:00 arası hizmet vermektedir. Seçtiğiniz hizmet ({selectedService.ServiceName}) {selectedService.DurationMinutes} dakika sürüyor ve kapanış saatini aşıyor.");
+                }
+
+                // KURAL 2: ANTRENÖR MESAİSİ KONTROLÜ
+                // Hoca o saatte çalışıyor mu? (Bitiş saatine de bakıyoruz!)
+                if (startTime.TimeOfDay < selectedTrainer.WorkStartTime || endTime.TimeOfDay > selectedTrainer.WorkEndTime)
+                {
+                    ModelState.AddModelError("Date",
+                        $"Antrenör {selectedTrainer.FullName} belirtilen saatlerde çalışmıyor. (Mesai: {selectedTrainer.WorkStartTime:hh\\:mm} - {selectedTrainer.WorkEndTime:hh\\:mm}). Randevunuz hocanın çıkış saatini aşıyor.");
+                }
+
+                // KURAL 3: HOCA ÇAKIŞMA KONTROLÜ
+                bool isTrainerBusy = await _context.Appointments.AnyAsync(a =>
+                    a.TrainerId == appointment.TrainerId &&
+                    a.Status != "İptal Edildi" &&
+                    (a.Date < endTime && a.Date.AddMinutes(a.GymService.DurationMinutes) > startTime)
+                );
+
+                if (isTrainerBusy)
+                {
+                    ModelState.AddModelError("", "Seçtiğiniz antrenörün bu saat aralığında başka bir randevusu var.");
+                }
+
+                // KURAL 4: ÜYE ÇAKIŞMA KONTROLÜ
+                bool isUserBusy = await _context.Appointments.AnyAsync(a =>
+                    a.UserId == userId &&
+                    a.Status != "İptal Edildi" &&
+                    (a.Date < endTime && a.Date.AddMinutes(a.GymService.DurationMinutes) > startTime)
+                );
+
+                if (isUserBusy)
+                {
+                    ModelState.AddModelError("", "Bu saat aralığında zaten başka bir randevunuz var.");
+                }
             }
 
-            // --- KURAL 3: ÇAKIŞMA KONTROLÜ (HOCA DOLU MU?) ---
-            // Aynı hocaya, aynı saatte, iptal edilmemiş başka randevu var mı?
-            bool isTrainerBusy = _context.Appointments.Any(a =>
-                a.TrainerId == appointment.TrainerId &&
-                a.Date == appointment.Date &&
-                a.Status != "İptal Edildi");
-
-            if (isTrainerBusy)
-            {
-                ModelState.AddModelError("", "Seçtiğiniz antrenörün bu saatte başka bir randevusu var. Lütfen başka bir saat seçiniz.");
-            }
-
-            // Eğer hiçbir hata yoksa (Valid) kaydet
             if (ModelState.IsValid)
             {
                 _context.Add(appointment);
@@ -121,10 +155,8 @@ namespace GymApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // Hata varsa (Mesela saat 03:00 seçtiyse) formu tekrar doldurup göster
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "Id", "FullName", appointment.TrainerId);
             ViewData["GymServiceId"] = new SelectList(_context.GymServices, "ServiceId", "ServiceName", appointment.GymServiceId);
-
             return View(appointment);
         }
 
@@ -221,6 +253,7 @@ namespace GymApp.Controllers
             }
             return RedirectToAction(nameof(Index));
         }
+
         // --- ONAYLAMA VE İPTAL İŞLEMLERİ (SADECE ADMIN) ---
 
         [Authorize(Roles = "Admin")]
@@ -246,6 +279,7 @@ namespace GymApp.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
         private bool AppointmentExists(int id)
         {
             return _context.Appointments.Any(e => e.Id == id);

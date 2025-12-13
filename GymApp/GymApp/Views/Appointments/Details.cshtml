@@ -52,6 +52,11 @@
                         <dd class="col-sm-8">
                             <span class="badge bg-info text-dark">@Model.GymService?.ServiceName</span>
                         </dd>
+
+                        <dt class="col-sm-4 text-muted">Hizmet Ücreti:</dt>
+                        <dd class="col-sm-8 fw-bold text-success">
+                            @Model.GymService?.Price.ToString("C2")
+                        </dd>
                     </dl>
                 </div>
 

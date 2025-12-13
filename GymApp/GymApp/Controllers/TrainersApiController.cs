@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using GymApp.Data;
 using GymApp.Models;
-using Microsoft.EntityFrameworkCore;
 
 namespace GymApp.Controllers
 {
@@ -17,22 +17,18 @@ namespace GymApp.Controllers
         }
 
         // GET: api/TrainersApi
-        // Tüm antrenörleri JSON formatında getirir
+        // Tüm antrenörleri JSON olarak döndürür (LINQ Select Kullanımı)
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetTrainers()
         {
-            // "Select" kullanarak sadece istediğimiz verileri alıyoruz.
-            // Bu sayede "Döngüsel Başvuru" (Circular Reference) hatasından kurtuluruz.
-            var trainers = await _context.Trainers
-                .Select(t => new
-                {
-                    Id = t.Id,
+            return await _context.Trainers
+                .Select(t => new {
                     AdSoyad = t.FullName,
-                    Uzmanlik = t.Specialization
+                    Uzmanlik = t.Specialization,
+                    BaslangicSaati = t.WorkStartTime.ToString(@"hh\:mm"),
+                    BitisSaati = t.WorkEndTime.ToString(@"hh\:mm")
                 })
                 .ToListAsync();
-
-            return Ok(trainers);
         }
     }
 }

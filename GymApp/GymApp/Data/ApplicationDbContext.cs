@@ -14,7 +14,7 @@ namespace GymApp.Data
         }
         //Identity sistemi kullanıcıları kendi içinde "AspNetUsers" tablosunda tutar.
         public DbSet<Trainer> Trainers { get; set; }
-        public DbSet<GymService> GymServices { get; set; } // PDF'teki Hizmetler (GymService)
-        public DbSet<Appointment> Appointments { get; set; } // PDF'teki Randevular
+        public DbSet<GymService> GymServices { get; set; } 
+        public DbSet<Appointment> Appointments { get; set; } 
     }
 }

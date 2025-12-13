@@ -47,9 +47,25 @@ namespace GymApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")] // KİLİT
-        public async Task<IActionResult> Create([Bind("Id,FullName,Specialization")] Trainer trainer)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Create([Bind("Id,FullName,Specialization,WorkStartTime,WorkEndTime")] Trainer trainer)
         {
+            // --- KURAL 1: SALON SAATLERİ KONTROLÜ (09:00 - 23:00) ---
+            TimeSpan salonAcilis = new TimeSpan(9, 0, 0);  // 09:00
+            TimeSpan salonKapanis = new TimeSpan(23, 0, 0); // 23:00
+
+            if (trainer.WorkStartTime < salonAcilis || trainer.WorkEndTime > salonKapanis)
+            {
+                ModelState.AddModelError("WorkStartTime", "Hocanın mesai saatleri salonun çalışma saatleri (09:00 - 23:00) dışında olamaz!");
+            }
+
+            // --- KURAL 2: MANTIK HATASI KONTROLÜ ---
+            // Başlangıç saati bitişten sonra olamaz
+            if (trainer.WorkStartTime >= trainer.WorkEndTime)
+            {
+                ModelState.AddModelError("WorkEndTime", "Mesai bitiş saati, başlangıç saatinden önce olamaz.");
+            }
+
             if (ModelState.IsValid)
             {
                 _context.Add(trainer);
@@ -72,10 +88,25 @@ namespace GymApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")] // KİLİT
-        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Specialization")] Trainer trainer)
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Edit(int id, [Bind("Id,FullName,Specialization,WorkStartTime,WorkEndTime")] Trainer trainer)
         {
             if (id != trainer.Id) return NotFound();
+
+            // --- KURAL 1: SALON SAATLERİ KONTROLÜ ---
+            TimeSpan salonAcilis = new TimeSpan(9, 0, 0);
+            TimeSpan salonKapanis = new TimeSpan(23, 0, 0);
+
+            if (trainer.WorkStartTime < salonAcilis || trainer.WorkEndTime > salonKapanis)
+            {
+                ModelState.AddModelError("WorkStartTime", "Hocanın mesai saatleri salonun çalışma saatleri (09:00 - 23:00) dışında olamaz!");
+            }
+
+            // --- KURAL 2: MANTIK HATASI KONTROLÜ ---
+            if (trainer.WorkStartTime >= trainer.WorkEndTime)
+            {
+                ModelState.AddModelError("WorkEndTime", "Mesai bitiş saati, başlangıç saatinden önce olamaz.");
+            }
 
             if (ModelState.IsValid)
             {
