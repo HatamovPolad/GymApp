@@ -1,8 +1,68 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Ana Sayfa";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="position-relative overflow-hidden p-3 p-md-5 m-md-3 text-center bg-light"
+     style="background-image: url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?q=80&w=1470&auto=format&fit=crop'); background-size: cover; background-position: center; border-radius: 20px; height: 500px;">
+
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);"></div>
+
+    <div class="col-md-8 p-lg-5 mx-auto my-5 position-relative text-white">
+        <h1 class="display-3 fw-bold">Hayalindeki Vücuda Ulaş</h1>
+        <p class="lead fw-normal mb-4">Profesyonel antrenörler ve kişiselleştirilmiş programlar ile değişime bugün başla.</p>
+
+        @if (!User.Identity.IsAuthenticated)
+        {
+            <a class="btn btn-warning btn-lg px-5 shadow" asp-area="Identity" asp-page="/Account/Register">Hemen Üye Ol</a>
+            <a class="btn btn-outline-light btn-lg px-5 ms-2" asp-area="Identity" asp-page="/Account/Login">Giriş Yap</a>
+        }
+        else
+        {
+            <a class="btn btn-success btn-lg px-5 shadow" asp-controller="Appointments" asp-action="Create">Randevu Al</a>
+        }
+    </div>
+</div>
+
+<div class="container mt-5">
+    <div class="row text-center">
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100 py-4 border-primary">
+                <div class="card-body">
+                    <div class="display-4 text-primary mb-3">🏋️‍♂️</div>
+                    <h3 class="card-title">Uzman Antrenörler</h3>
+                    <p class="card-text">Alanında uzman, sertifikalı eğitmenlerle çalışarak hedefine en kısa yoldan ulaş.</p>
+                    <a asp-controller="Trainers" asp-action="Index" class="btn btn-outline-primary btn-sm">Eğitmenleri Gör</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100 py-4 border-success">
+                <div class="card-body">
+                    <div class="display-4 text-success mb-3">🧘‍♀️</div>
+                    <h3 class="card-title">Çeşitli Hizmetler</h3>
+                    <p class="card-text">Fitness'tan Pilates'e, Yoga'dan Crossfit'e kadar geniş hizmet yelpazesi.</p>
+                    <a asp-controller="GymServices" asp-action="Index" class="btn btn-outline-success btn-sm">Hizmetleri İncele</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow h-100 py-4 border-warning">
+                <div class="card-body">
+                    <div class="display-4 text-warning mb-3">🤖</div>
+                    <h3 class="card-title">Yapay Zeka Desteği</h3>
+                    <p class="card-text">Vücut tipine ve hedeflerine uygun AI destekli programını saniyeler içinde oluştur.</p>
+                    @if (User.Identity.IsAuthenticated && !User.IsInRole("Admin"))
+                    {
+                        <a asp-controller="Ai" asp-action="Index" class="btn btn-outline-warning btn-sm">AI Programını Gör</a>
+                    }
+                    else
+                    {
+                        <span class="text-muted small">Üyelere Özel</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

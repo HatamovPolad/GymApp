@@ -18,7 +18,15 @@ namespace GymApp.Controllers
         // Üyeleri Listele
         public async Task<IActionResult> Index()
         {
-            var users = await _userManager.Users.ToListAsync();
+            // 1. Şu an sisteme giriş yapmış olan kişinin (Admin'in) ID'sini bul
+            var currentUserId = _userManager.GetUserId(User);
+
+            // 2. Veritabanından kullanıcıları çekerken filtrele:
+            // "ID'si benim ID'me eşit OLMAYANLARI (u.Id != currentUserId) getir"
+            var users = await _userManager.Users
+                .Where(u => u.Id != currentUserId)
+                .ToListAsync();
+
             return View(users);
         }
 

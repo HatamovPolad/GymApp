@@ -1,6 +1,7 @@
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using GymApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GymApp.Controllers
 {
@@ -15,9 +16,24 @@ namespace GymApp.Controllers
 
         public IActionResult Index()
         {
+            // KURAL: Eğer giren kişi Admin ise, direkt Yönetim Paneline şutla! 🚀
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("AdminPanel");
+            }
+
+            // Değilse normal anasayfayı görsün
             return View();
         }
 
+        // Admin Paneli Sayfasını Açan Kod (Eğer Controller'da yoksa bunu da ekle)
+        [Authorize(Roles = "Admin")]
+        public IActionResult AdminPanel()
+        {
+            return View();
+        }
+
+        // Privacy Action'ı silebilirsin veya durabilir, ama View'dan linki kaldıracağız.
         public IActionResult Privacy()
         {
             return View();
