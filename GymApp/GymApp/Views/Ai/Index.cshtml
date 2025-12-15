@@ -2,63 +2,124 @@
     ViewData["Title"] = "AI Antrenör";
 }
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow-lg border-0">
-                <div class="card-header bg-dark text-white text-center py-4">
-                    <h2>🤖 AI Akıllı Antrenör</h2>
-                    <p class="mb-0">Bilgilerini gir, yapay zeka sana özel program hazırlasın!</p>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<div class="container mt-4">
+    <div class="text-center mb-4">
+        <h1 class="display-5 fw-bold text-primary">🤖 Yapay Zeka Antrenör</h1>
+        <p class="lead text-muted">Vücut bilgilerini gir, sana özel program saniyeler içinde hazır olsun.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card shadow-lg border-0 mb-4">
+                <div class="card-header bg-gradient bg-primary text-white">
+                    <h5 class="mb-0">📋 Bilgilerin</h5>
                 </div>
-
-                <div class="card-body p-5">
-
-                    <form asp-action="GeneratePlan" method="post">
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Yaşınız</label>
-                                <input type="number" name="age" class="form-control" required placeholder="Örn: 25" min="10" max="90" />
+                <div class="card-body">
+                    <form asp-action="GeneratePlan" method="post" id="aiForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-white">Cinsiyet</label>
+                            <select name="gender" class="form-select">
+                                <option value="Erkek">Erkek</option>
+                                <option value="Kadın">Kadın</option>
+                            </select>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold text-white">Yaş</label>
+                                <input type="number" name="age" class="form-control" value="@ViewBag.Age" required placeholder="22" />
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Boyunuz (cm)</label>
-                                <input type="number" name="height" class="form-control" required placeholder="Örn: 175" min="100" max="250" />
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-bold">Kilonuz (kg)</label>
-                                <input type="number" name="weight" class="form-control" required placeholder="Örn: 75" min="30" max="200" />
+                            <div class="col-6 mb-3">
+                                <label class="form-label fw-bold text-white">Kilo (kg)</label>
+                                <input type="number" name="weight" class="form-control" value="@ViewBag.Weight" required placeholder="75" />
                             </div>
                         </div>
-
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Hedefiniz Nedir?</label>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-white">Boy (cm)</label>
+                            <input type="number" name="height" class="form-control" value="@ViewBag.Height" required placeholder="180" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-white">Hedefin</label>
                             <select name="goal" class="form-select">
-                                <option value="lose_weight">🏃 Kilo Vermek / Yağ Yakmak</option>
-                                <option value="build_muscle">💪 Kas Yapmak / Hacim</option>
-                                <option value="stay_fit">🧘 Formu Korumak / Sağlık</option>
+                                <option value="Kilo Vermek & Yağ Yakmak">Kilo Vermek & Yağ Yakmak</option>
+                                <option value="Kas Kütlesini Artırmak (Bulk)">Kas Kütlesini Artırmak</option>
+                                <option value="Fit ve Sıkı Olmak">Fit ve Sıkı Olmak</option>
+                                <option value="Güç ve Kondisyon Kazanmak">Güç ve Kondisyon</option>
                             </select>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100 py-2 fs-5">
-                            ✨ Analiz Et ve Program Oluştur
-                        </button>
-                    </form>
-                    @if (ViewBag.Plan != null)
-                    {
-                        <div class="alert alert-success mt-5 border-2 shadow">
-                            <h4 class="alert-heading text-center">🎉 Analiz Tamamlandı!</h4>
-
-                            <div class="text-center mb-3">
-                                <span class="badge bg-warning text-dark fs-6">📊 @ViewBag.Status</span>
-                            </div>
-                            <hr>
-
-                            <p><strong>🏋️‍♂️ Önerilen Program:</strong> @ViewBag.Plan</p>
-                            <p><strong>🥗 Beslenme Tavsiyesi:</strong> @ViewBag.Diet</p>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-warning text-dark fw-bold btn-lg" onclick="showLoading()">
+                                ✨ Programı Hazırla
+                            </button>
                         </div>
-                    }
-
+                    </form>
                 </div>
             </div>
         </div>
+
+        <div class="col-md-8">
+            <div id="loading" class="text-center py-5" style="display:none;">
+                <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4 class="mt-3 text-white">Yapay Zeka programını hazırlıyor...</h4>
+                <p class="text-muted">Lütfen bekleyin, en iyi rotayı çiziyoruz.</p>
+            </div>
+
+            @if (ViewBag.AiResponse != null)
+            {
+                <div class="card shadow-lg border-0 h-100 animate__animated animate__fadeIn">
+                    <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">✅ Senin İçin Hazırlanan Plan</h5>
+                        <small class="text-white-50">Gemini AI</small>
+                    </div>
+                    <div class="card-body">
+                        <div id="ai-content" class="p-2 text-white" style="font-size: 1.05rem; line-height: 1.6;"></div>
+
+                        <div id="raw-content" style="display:none;">@ViewBag.AiResponse</div>
+                    </div>
+                </div>
+            }
+            else if (ViewBag.Error != null)
+            {
+                <div class="alert alert-danger shadow">
+                    ⚠️ @ViewBag.Error
+                </div>
+            }
+            else
+            {
+                <div class="card h-100 d-flex justify-content-center align-items-center text-center p-5 border-0 shadow">
+                    <div class="card-body">
+                        <div class="display-1 mb-3">👈</div>
+                        <h4 class="text-white">Henüz bir program oluşturmadın.</h4>
+                        <p class="text-muted">Sol taraftaki bilgileri doldur ve yapay zekanın gücünü gör!</p>
+                    </div>
+                </div>
+            }
+        </div>
     </div>
 </div>
+
+<script>
+    function showLoading() {
+        // Form geçerliyse yükleniyor göster
+        if(document.getElementById('aiForm').checkValidity()) {
+            document.getElementById('loading').style.display = 'block';
+        }
+    }
+
+    // Sayfa yüklendiğinde Markdown'ı HTML'e çevir
+    document.addEventListener("DOMContentLoaded", function() {
+        var rawText = document.getElementById("raw-content");
+        if (rawText) {
+            var markdownText = rawText.innerHTML;
+            // Marked kütüphanesi ile HTML'e çevir
+            var htmlContent = marked.parse(markdownText);
+
+            // Listeleri ve başlıkları beyaz yapması için style ekle
+            document.getElementById("ai-content").innerHTML = htmlContent;
+        }
+    });
+</script>

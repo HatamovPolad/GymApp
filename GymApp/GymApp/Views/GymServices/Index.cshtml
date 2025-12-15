@@ -1,65 +1,54 @@
 ﻿@model IEnumerable<GymApp.Models.GymService>
 
 @{
-    ViewData["Title"] = "Salon Hizmetleri";
+    ViewData["Title"] = "Hizmetlerimiz";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>🏋️‍♂️ Salon Hizmetlerimiz</h2>
-        
+<div class="container mt-5">
+    <div class="text-center mb-5">
+        <h2 class="display-5 fw-bold text-success">Hizmetlerimiz</h2>
+        <p class="lead text-muted">İhtiyacına uygun antrenman türünü seç.</p>
         @if (User.IsInRole("Admin"))
         {
-            <a asp-action="Create" class="btn btn-success">
-                <i class="bi bi-plus-circle"></i> Yeni Hizmet Ekle
+            <a asp-action="Create" class="btn btn-success btn-lg shadow-sm rounded-pill">
+                <i class="bi bi-plus-lg"></i> Yeni Hizmet Ekle
             </a>
         }
     </div>
 
-    <table class="table table-hover shadow-sm">
-        <thead class="table-light">
-            <tr>
-                <th>Hizmet Adı</th>
-                <th>Açıklama</th>
-                <th>Süre (Dk)</th>
-                <th>Ücret</th>
-                <th>İşlemler</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model)
-            {
-                <tr>
-                    <td class="fw-bold">
-                        @Html.DisplayFor(modelItem => item.ServiceName)
-                    </td>
-                    <td>
-                        @if (!string.IsNullOrEmpty(item.Description) && item.Description.Length > 50)
-                        {
-                            @item.Description.Substring(0, 50) <span>...</span>
-                        }
-                        else
-                        {
-                            @Html.DisplayFor(modelItem => item.Description)
-                        }
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.DurationMinutes) dk
-                    </td>
-                    <td>
-                        <span class="badge bg-success">@item.Price TL</span>
-                    </td>
-                    <td>
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <a asp-action="Edit" asp-route-id="@item.ServiceId" class="btn btn-sm btn-warning">Düzenle</a>
-                            <a asp-action="Delete" asp-route-id="@item.ServiceId" class="btn btn-sm btn-danger">Sil</a>
-                        }
-                        
-                        <a asp-action="Details" asp-route-id="@item.ServiceId" class="btn btn-sm btn-info text-white">Detay</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 border-top border-4 border-success">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="card-title fw-bold m-0">@item.ServiceName</h3>
+                            <div class="display-6 text-success"><i class="bi bi-activity"></i></div>
+                        </div>
+
+                        <p class="card-text text-muted">@item.Description</p> <div class="d-flex justify-content-between align-items-center mt-4 p-3 bg-light rounded">
+                            <div class="text-center">
+                                <small class="text-muted d-block">Süre</small>
+                                <span class="fw-bold">@item.DurationMinutes dk</span>
+                            </div>
+                            <div class="vr"></div>
+                            <div class="text-center">
+                                <small class="text-muted d-block">Ücret</small>
+                                <span class="fw-bold text-success">@item.Price ₺</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-center">
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Edit" asp-route-id="@item.ServiceId" class="btn btn-sm btn-outline-secondary">Düzenle</a>
+                                <a asp-action="Delete" asp-route-id="@item.ServiceId" class="btn btn-sm btn-outline-danger">Sil</a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>

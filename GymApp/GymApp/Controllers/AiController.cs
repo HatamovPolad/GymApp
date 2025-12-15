@@ -1,64 +1,81 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
+using Newtonsoft.Json;
 
 namespace GymApp.Controllers
 {
     [Authorize]
     public class AiController : Controller
     {
-        public IActionResult Index()
+        // 🔑 1. ADIMDA ALDIĞIN ANAHTARI AŞAĞIYA YAPIŞTIR:
+        private const string ApiKey = "AIzaSyCKR4PEovZq8ez9fbJmYzEPNc14I1o1Ivs";
+
+        // Google Gemini API Adresi
+        // "gemini-2.5-flash" modelini kullanıyoruz. Hem çok hızlı hem de çok zeki.
+        private const string ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="; public IActionResult Index()
         {
             return View();
         }
 
         [HttpPost]
-        public IActionResult GeneratePlan(int age, int weight, int height, string goal)
+        public async Task<IActionResult> GeneratePlan(int age, int weight, int height, string goal, string gender)
         {
-            string plan = "";
-            string diet = "";
-            string status = "";
+            // 1. Kullanıcı verilerini View'dan alıp tekrar geri göndermek için sakla (Form silinmesin diye)
+            ViewBag.Age = age;
+            ViewBag.Weight = weight;
+            ViewBag.Height = height;
 
-            double heightInMeters = height / 100.0;
-            if (heightInMeters <= 0) heightInMeters = 1.70;
+            // 2. Yapay Zekaya gönderilecek soruyu (Prompt) hazırla
+            string userPrompt = $"Ben {age} yaşında, {weight} kilo, {height} cm boyunda, {gender} cinsiyetinde bir bireyim. " +
+                                $"Hedefim: {goal}. " +
+                                $"Bana profesyonel bir spor hocası ve diyetisyen gibi davran. " +
+                                $"1. Bölüm: Haftalık antrenman programı (gün gün). " +
+                                $"2. Bölüm: Örnek günlük beslenme programı (kalori hesaplı). " +
+                                $"Cevabı Türkçe ver, samimi ve motive edici bir dil kullan. " +
+                                $"Format olarak Markdown kullan (Kalın başlıklar, maddeler).";
 
-            double bmi = weight / (heightInMeters * heightInMeters);
-
-            if (bmi < 18.5) status = "Zayıf";
-            else if (bmi < 25) status = "Normal Kilolu";
-            else if (bmi < 30) status = "Fazla Kilolu";
-            else status = "Obezite Sınırında";
-
-            bool isYoung = age < 18;
-
-            if (goal == "lose_weight")
+            // 3. Google Gemini'nin istediği JSON formatını hazırla
+            var requestBody = new
             {
-                if (bmi < 20)
+                contents = new[]
                 {
-                    plan = "Vücut kitle indeksin düşük, kilo vermen önerilmez. Kas kazanımına odaklan.";
-                    diet = "Protein ve karbonhidrat ağırlıklı beslen.";
+                    new { parts = new[] { new { text = userPrompt } } }
                 }
-                else
+            };
+
+            string jsonContent = JsonConvert.SerializeObject(requestBody);
+            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+            try
+            {
+                using (var httpClient = new HttpClient())
                 {
-                    plan = "Haftada 3 gün Kardiyo + 2 gün Ağırlık.";
-                    diet = "Kalori açığı oluştur. Şekeri kes.";
+                    // API'ye isteği gönder
+                    var response = await httpClient.PostAsync(ApiUrl + ApiKey, content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var resultJson = await response.Content.ReadAsStringAsync();
+                        dynamic result = JsonConvert.DeserializeObject(resultJson);
+
+                        // Gelen cevabın içinden metni cımbızla çek
+                        string aiResponse = result.candidates[0].content.parts[0].text;
+
+                        ViewBag.AiResponse = aiResponse;
+                    }
+                    else
+                    {
+                        // Google'dan gelen gerçek hata mesajını oku
+                        var errorResponse = await response.Content.ReadAsStringAsync();
+                        ViewBag.Error = $"Google API Hatası! Kodu: {response.StatusCode}. Detay: {errorResponse}";
+                    }
                 }
             }
-            else if (goal == "build_muscle")
+            catch (Exception ex)
             {
-                plan = "Push/Pull/Legs antrenman sistemi.";
-                diet = "Yüksek protein (2g/kg).";
+                ViewBag.Error = "Bir hata oluştu: " + ex.Message;
             }
-            else
-            {
-                plan = "Full Body antrenman + Yürüyüş.";
-                diet = "Dengeli Akdeniz diyeti.";
-            }
-
-            if (isYoung) plan += " (Kendi vücut ağırlığınla çalışman önerilir.)";
-
-            ViewBag.Plan = plan;
-            ViewBag.Diet = diet;
-            ViewBag.Status = $"BMI: {bmi:F1} ({status})";
 
             return View("Index");
         }

@@ -1,93 +1,215 @@
-﻿/* Google Font Ekleme */
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+﻿/* --- GOOGLE FONT --- */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-html {
-    font-size: 14px;
+/* --- RENK TANIMLAMALARI (VARIABLES) --- */
+:root {
+    /* === LIGHT MODE (GÖZ DOSTU - KONTRASTLI) === */
+    --bg-body: #dce1e9; /* Arka planı koyulaştırdık (Parlaklığı kırdık) */
+    --text-main: #212529; /* Yazılar net siyah/gri */
+    --bg-card: #ffffff; /* Kartlar beyaz */
+    --text-card: #212529;
+    --border-color: #ced4da; /* Çerçeveler daha belirgin */
+    /* EN ÖNEMLİ DEĞİŞİKLİK BURADA: INPUTLAR */
+    --input-bg: #e9ecef; /* Kutucuklar GRİ oldu (Beyaz kartta parlamaz) */
+    --input-text: #000000;
+    --footer-bg: #1a1a2e;
+    --footer-text: #ffffff;
+    --primary-color: #0d6efd;
+    --shadow-color: rgba(0, 0, 0, 0.15); /* Gölgeleri güçlendirdik */
+    --hover-bg: #dde2e6;
+    --table-header: #212529;
+    --table-header-text: #ffffff;
 }
 
-@media (min-width: 768px) {
-    html {
-        font-size: 16px;
-    }
+[data-theme="dark"] {
+    /* === DARK MODE (PREMIUM SİYAH) === */
+    --bg-body: #121212;
+    --text-main: #e0e0e0;
+    --bg-card: #1e1e1e;
+    --text-card: #ffffff;
+    --border-color: #444444;
+    --input-bg: #2d2d2d;
+    --input-text: #ffffff;
+    --footer-bg: #000000;
+    --footer-text: #888888;
+    --primary-color: #4dabf7;
+    --shadow-color: rgba(0, 255, 255, 0.1);
+    --hover-bg: #2c2c2c;
+    --table-header: #000000;
+    --table-header-text: #ffffff;
 }
 
-/* --- ANA YAPI VE STICKY FOOTER AYARLARI --- */
-body {
-    font-family: 'Poppins', sans-serif; /* Modern Font */
-    background-color: #f8f9fa; /* Hafif Gri Arka Plan */
-    color: #333;
-    /* Footer'ı en alta itmek için Flexbox yapısı */
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh; /* Sayfa yüksekliği en az ekran boyu kadar */
+/* --- GENEL AYARLAR --- */
+html, body {
+    height: 100%;
     margin: 0;
 }
 
-main {
-    /* İçerik az olsa bile orta alan tüm boşluğu kaplasın */
-    flex: 1;
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-footer {
-    /* Footer sıkışmasın ve en alta gitsin */
-    flex-shrink: 0;
-    margin-top: auto;
+main {
+    flex: 1 0 auto;
     width: 100%;
 }
-/* ------------------------------------------ */
 
-/* Linklerin Alt Çizgisini Kaldır */
 a {
     text-decoration: none !important;
+    color: var(--primary-color);
+    transition: 0.3s;
 }
 
-/* Kartlara Gölge ve Hareket Efekti */
+    a:hover {
+        color: #ffc107;
+    }
+
+/* --- KARTLAR --- */
 .card {
-    border: none;
-    border-radius: 15px;
+    background-color: var(--bg-card);
+    color: var(--text-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    /* Kart gölgesini artırdık ki zeminden kopsun */
+    box-shadow: 0 8px 30px var(--shadow-color) !important;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    overflow: hidden; /* Resim taşarsa gizle */
 }
 
     .card:hover {
-        transform: translateY(-5px); /* Üzerine gelince yukarı kalksın */
-        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important; /* DÜZELTME: box_shadow -> box-shadow */
+        transform: translateY(-5px);
     }
 
-/* Tabloları Güzelleştir */
-.table thead {
-    background-color: #343a40;
-    color: white;
+.card-header {
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem;
 }
+
+/* --- FORMLAR (INPUT KUTULARI) --- */
+.form-control, .form-select {
+    background-color: var(--input-bg) !important; /* Arka planı zorla gri yap */
+    border: 2px solid transparent; /* Çerçeveyi gizle */
+    color: var(--input-text);
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+    /* Kutuya tıklayınca ne olsun? */
+    .form-control:focus, .form-select:focus {
+        background-color: #ffffff !important; /* Tıklayınca içi beyaz olsun (Odaklanma hissi) */
+        border-color: var(--primary-color);
+        color: #000;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+    }
+
+/* Etiketler (Labels) */
+label {
+    color: var(--text-main);
+    font-weight: 600; /* Yazıları kalınlaştırdık */
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+/* --- TABLOLAR --- */
+.table {
+    color: var(--text-main);
+    border-color: var(--border-color);
+}
+
+    .table thead {
+        background-color: var(--table-header);
+        color: var(--table-header-text);
+    }
 
 .table-hover tbody tr:hover {
-    background-color: #f1f1f1;
+    color: var(--text-main);
+    background-color: var(--hover-bg);
 }
 
-/* Butonları Yuvarlat */
+/* --- BUTONLAR --- */
 .btn {
     border-radius: 50px;
-    padding: 8px 20px;
+    padding: 10px 25px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     transition: all 0.3s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
     .btn:hover {
-        transform: scale(1.05); /* Buton hafif büyüsün */
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
 
-/* Navbar (Üst Menü) Güzelleştirme */
+/* --- NAVBAR VE FOOTER --- */
 .navbar {
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    background: linear-gradient(90deg, #0d6efd 0%, #0043a8 100%) !important; /* Mavi Degrade */
+    background: linear-gradient(135deg, #0d6efd 0%, #0043a8 100%) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
 .navbar-brand, .nav-link {
-    color: white !important;
+    color: #fff !important;
 }
 
     .nav-link:hover {
-        color: #ffc107 !important; /* Sarı hover efekti */
+        color: #ffc107 !important;
     }
+
+footer {
+    flex-shrink: 0;
+    width: 100%;
+    background-color: var(--footer-bg);
+    color: var(--footer-text);
+    margin-top: auto;
+    border-top: 1px solid var(--border-color);
+    padding: 20px 0;
+}
+
+/* --- DÜZELTMELER --- */
+.text-muted {
+    color: #6c757d !important;
+}
+
+[data-theme="dark"] .text-muted {
+    color: #adb5bd !important;
+}
+
+.bg-light {
+    background-color: var(--bg-card) !important;
+}
+
+.text-dark {
+    color: var(--text-main) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-main);
+    font-weight: 700;
+}
+
+/* --- TEMA BUTONU --- */
+#theme-toggle {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    z-index: 9999;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--primary-color);
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(13, 110, 253, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
