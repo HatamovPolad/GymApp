@@ -8,12 +8,18 @@ namespace GymApp.Controllers
     [Authorize]
     public class AiController : Controller
     {
-        // 🔑 1. ADIMDA ALDIĞIN ANAHTARI AŞAĞIYA YAPIŞTIR:
-        private const string ApiKey = "AIzaSyCKR4PEovZq8ez9fbJmYzEPNc14I1o1Ivs";
+        private readonly IConfiguration _configuration;
 
-        // Google Gemini API Adresi
-        // "gemini-2.5-flash" modelini kullanıyoruz. Hem çok hızlı hem de çok zeki.
-        private const string ApiUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key="; public IActionResult Index()
+        // Yapıcı Metot: Şifreleri okuyabilmek için ayarları (Configuration) içeri alıyoruz
+        public AiController(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
+
+        // Modeli buradan değiştirebilirsin
+        private const string ApiModel = "gemini-2.5-flash";
+
+        public IActionResult Index()
         {
             return View();
         }
@@ -21,60 +27,61 @@ namespace GymApp.Controllers
         [HttpPost]
         public async Task<IActionResult> GeneratePlan(int age, int weight, int height, string goal, string gender)
         {
-            // 1. Kullanıcı verilerini View'dan alıp tekrar geri göndermek için sakla (Form silinmesin diye)
+            // 1. GİZLİ KASADAN ŞİFREYİ OKU
+            string apiKey = _configuration["GoogleApiKey"];
+
+            if (string.IsNullOrEmpty(apiKey))
+            {
+                ViewBag.Error = "API Anahtarı bulunamadı! Lütfen 'Manage User Secrets' ayarını kontrol edin.";
+                return View("Index");
+            }
+
+            string apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{ApiModel}:generateContent?key={apiKey}";
+
+            // View verilerini sakla
             ViewBag.Age = age;
             ViewBag.Weight = weight;
             ViewBag.Height = height;
 
-            // 2. Yapay Zekaya gönderilecek soruyu (Prompt) hazırla
+            // Prompt Hazırla
             string userPrompt = $"Ben {age} yaşında, {weight} kilo, {height} cm boyunda, {gender} cinsiyetinde bir bireyim. " +
                                 $"Hedefim: {goal}. " +
-                                $"Bana profesyonel bir spor hocası ve diyetisyen gibi davran. " +
-                                $"1. Bölüm: Haftalık antrenman programı (gün gün). " +
-                                $"2. Bölüm: Örnek günlük beslenme programı (kalori hesaplı). " +
-                                $"Cevabı Türkçe ver, samimi ve motive edici bir dil kullan. " +
-                                $"Format olarak Markdown kullan (Kalın başlıklar, maddeler).";
+                                $"Bana profesyonel bir spor hocası gibi: " +
+                                $"1. Haftalık antrenman programı. " +
+                                $"2. Günlük beslenme programı (kalori hesaplı). " +
+                                $"Cevabı Türkçe ver ve Markdown formatında olsun.";
 
-            // 3. Google Gemini'nin istediği JSON formatını hazırla
             var requestBody = new
             {
-                contents = new[]
-                {
-                    new { parts = new[] { new { text = userPrompt } } }
-                }
+                contents = new[] { new { parts = new[] { new { text = userPrompt } } } }
             };
-
-            string jsonContent = JsonConvert.SerializeObject(requestBody);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
             try
             {
                 using (var httpClient = new HttpClient())
                 {
-                    // API'ye isteği gönder
-                    var response = await httpClient.PostAsync(ApiUrl + ApiKey, content);
+                    var jsonContent = JsonConvert.SerializeObject(requestBody);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                    var response = await httpClient.PostAsync(apiUrl, content);
 
                     if (response.IsSuccessStatusCode)
                     {
                         var resultJson = await response.Content.ReadAsStringAsync();
                         dynamic result = JsonConvert.DeserializeObject(resultJson);
-
-                        // Gelen cevabın içinden metni cımbızla çek
                         string aiResponse = result.candidates[0].content.parts[0].text;
-
                         ViewBag.AiResponse = aiResponse;
                     }
                     else
                     {
-                        // Google'dan gelen gerçek hata mesajını oku
-                        var errorResponse = await response.Content.ReadAsStringAsync();
-                        ViewBag.Error = $"Google API Hatası! Kodu: {response.StatusCode}. Detay: {errorResponse}";
+                        var errorMsg = await response.Content.ReadAsStringAsync();
+                        ViewBag.Error = $"Bağlantı Hatası! Detay: {errorMsg}";
                     }
                 }
             }
             catch (Exception ex)
             {
-                ViewBag.Error = "Bir hata oluştu: " + ex.Message;
+                ViewBag.Error = "Hata: " + ex.Message;
             }
 
             return View("Index");
