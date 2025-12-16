@@ -8,16 +8,19 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold text-dark mb-0">
-                @(User.IsInRole("Admin") ? "📋 Tüm Randevular" : "📅 Randevularım")
+                @(User.IsInRole("Admin") ? "📋 Yönetim Paneli: Randevular" : "📅 Randevularım")
             </h2>
             <small class="text-muted">
-                @(User.IsInRole("Admin") ? "Sistemdeki tüm randevuları buradan yönetebilirsin." : "Geçmiş ve gelecek antrenmanların burada.")
+                @(User.IsInRole("Admin") ? "Üyelerin randevu taleplerini buradan yönetebilirsin." : "Spor programını buradan takip edebilirsin.")
             </small>
         </div>
 
-        <a asp-action="Create" class="btn btn-primary shadow-sm rounded-pill px-4 py-2">
-            <i class="bi bi-plus-lg"></i> Yeni Randevu Al
-        </a>
+        @if (!User.IsInRole("Admin"))
+        {
+            <a asp-action="Create" class="btn btn-primary shadow-sm rounded-pill px-4 py-2">
+                <i class="bi bi-plus-lg"></i> Yeni Randevu Al
+            </a>
+        }
     </div>
 
     <div class="card shadow border-0 overflow-hidden rounded-4">
@@ -29,6 +32,8 @@
                             <th class="py-3 ps-4">Tarih & Saat</th>
                             <th class="py-3">Hizmet</th>
                             <th class="py-3">Antrenör</th>
+                            <th class="py-3 text-center">Durum</th>
+
                             @if (User.IsInRole("Admin"))
                             {
                                 <th class="py-3">Üye Bilgisi</th>
@@ -56,35 +61,63 @@
 
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex justify-content-center align-items-center me-2" style="width:35px; height:35px;">
-                                            <span class="fw-bold">
-                                                @(item.Trainer != null && !string.IsNullOrEmpty(item.Trainer.FullName) ? item.Trainer.FullName.Substring(0, 1) : "?")
-                                            </span>
-                                        </div>
-                                        <span>
-                                            @(item.Trainer != null ? item.Trainer.FullName : "Eski Antrenör")
-                                        </span>
+                                        <span>@(item.Trainer != null ? item.Trainer.FullName : "-")</span>
                                     </div>
+                                </td>
+
+                                <td class="text-center">
+                                    @if (item.Status == "Bekliyor")
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split"></i> Bekliyor</span>
+                                    }
+                                    else if (item.Status == "Onaylandı")
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Onaylandı</span>
+                                    }
+                                    else if (item.Status == "İptal Edildi")
+                                    {
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle"></i> İptal</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@item.Status</span>
+                                    }
                                 </td>
 
                                 @if (User.IsInRole("Admin"))
                                 {
                                     <td>
-                                        <div class="d-flex align-items-center text-muted">
-                                            <i class="bi bi-person-circle me-2"></i>
-                                            @(item.User != null ? item.User.Email : "Bilinmiyor")
-                                        </div>
+                                        <small class="text-muted">@(item.User != null ? item.User.Email : "?")</small>
                                     </td>
                                 }
 
                                 <td class="text-end pe-4">
                                     <div class="btn-group" role="group">
-                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">
-                                            Düzenle
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">
-                                            İptal
-                                        </a>
+
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            // --- ADMIN İŞLEMLERİ ---
+
+                                            // Sadece 'Bekliyor' ise Onayla butonu çıksın
+                                            if (item.Status == "Bekliyor")
+                                            {
+                                                <a asp-action="Approve" asp-route-id="@item.Id" class="btn btn-sm btn-success text-white" title="Onayla">
+                                                    <i class="bi bi-check-lg"></i>
+                                                </a>
+                                            }
+
+                                            // Admin Düzenleyebilir
+                                            <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Düzenle">
+                                                <i class="bi bi-pencil-fill"></i>
+                                            </a>
+                                        }
+
+                                        @if (item.Status != "İptal Edildi")
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="İptal Et / Sil">
+                                                <i class="bi bi-trash-fill"></i> @(User.IsInRole("Admin") ? "" : "İptal")
+                                            </a>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -97,8 +130,7 @@
             {
                 <div class="text-center py-5 bg-light">
                     <div class="mb-3" style="font-size: 3rem;">📅</div>
-                    <h5 class="text-muted">Henüz hiç randevu yok.</h5>
-                    <p class="text-muted small">Spor serüvenine başlamak için yukarıdan yeni randevu alabilirsin.</p>
+                    <h5 class="text-muted">Henüz randevu kaydı yok.</h5>
                 </div>
             }
         </div>

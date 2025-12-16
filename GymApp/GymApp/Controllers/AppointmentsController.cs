@@ -22,8 +22,9 @@ namespace GymApp.Controllers
             _context = context;
         }
 
+        // ==========================================
         // 1. LİSTELEME (INDEX)
-        // Admin hepsini görür, Üye sadece kendininkini görür.
+        // ==========================================
         public async Task<IActionResult> Index()
         {
             var gymContext = _context.Appointments
@@ -32,7 +33,7 @@ namespace GymApp.Controllers
                 .Include(a => a.User)
                 .AsQueryable();
 
-            // Eğer Admin DEĞİLSE, sadece kendi randevularını filtrele
+            // Eğer Admin DEĞİLSE, sadece kendi randevularını görsün
             if (!User.IsInRole("Admin"))
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -43,7 +44,9 @@ namespace GymApp.Controllers
             return View(await gymContext.OrderByDescending(a => a.Date).ToListAsync());
         }
 
+        // ==========================================
         // 2. DETAY (DETAILS)
+        // ==========================================
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -60,13 +63,17 @@ namespace GymApp.Controllers
             if (!User.IsInRole("Admin"))
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (appointment.UserId != userId) return Forbid(); // Erişim Yasak
+                if (appointment.UserId != userId) return Forbid();
             }
 
             return View(appointment);
         }
 
-        // 3. OLUŞTURMA (CREATE) - GET
+        // ==========================================
+        // 3. OLUŞTURMA (CREATE)
+        // ==========================================
+
+        // GET: Create
         public IActionResult Create()
         {
             // Dropdown'larda ID yerine İSİM gözüksün:
@@ -76,12 +83,12 @@ namespace GymApp.Controllers
             return View();
         }
 
-        // 3. OLUŞTURMA (CREATE) - POST 
+        // POST: Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Date,TrainerId,GymServiceId")] Appointment appointment)
         {
-            // 1. Kullanıcıyı Bul
+            // 1. Kullanıcıyı Bul ve Ata
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             appointment.UserId = userId;
             appointment.CreatedDate = DateTime.Now;
@@ -93,7 +100,7 @@ namespace GymApp.Controllers
                 ModelState.AddModelError("Date", "Geçmiş bir tarihe randevu alamazsınız.");
             }
 
-            // --- KRİTİK HESAPLAMA BÖLÜMÜ ---
+            // --- İŞ MANTIĞI VE KONTROLLER ---
             var selectedService = await _context.GymServices.FindAsync(appointment.GymServiceId);
             var selectedTrainer = await _context.Trainers.FindAsync(appointment.TrainerId);
 
@@ -101,33 +108,31 @@ namespace GymApp.Controllers
             {
                 // Başlangıç ve Bitiş Saatlerini Hesapla
                 DateTime startTime = appointment.Date;
-                DateTime endTime = startTime.AddMinutes(selectedService.DurationMinutes);
+                DateTime endTime = startTime.AddMinutes(selectedService.Sure);
 
                 // SALON KURALLARI (Sabit: 09:00 - 23:00)
                 TimeSpan salonAcilis = new TimeSpan(9, 0, 0);
                 TimeSpan salonKapanis = new TimeSpan(23, 0, 0);
 
                 // KURAL 1: GÜN DEĞİŞİMİ VE SALON KAPANIŞ KONTROLÜ
-                // Eğer bitiş saati başlangıç gününden farklıysa (gece yarısını geçmişse) VEYA 23:00'ü geçmişse
                 if (endTime.Date > startTime.Date || endTime.TimeOfDay > salonKapanis || startTime.TimeOfDay < salonAcilis)
                 {
                     ModelState.AddModelError("Date",
-                        $"Salonumuz 09:00 - 23:00 arası hizmet vermektedir. Seçtiğiniz hizmet ({selectedService.ServiceName}) {selectedService.DurationMinutes} dakika sürüyor ve kapanış saatini aşıyor.");
+                        $"Salonumuz 09:00 - 23:00 arası hizmet vermektedir. Seçtiğiniz hizmet ({selectedService.ServiceName}) {selectedService.Sure} dakika sürüyor ve kapanış saatini aşıyor.");
                 }
 
                 // KURAL 2: ANTRENÖR MESAİSİ KONTROLÜ
-                // Hoca o saatte çalışıyor mu? (Bitiş saatine de bakıyoruz!)
                 if (startTime.TimeOfDay < selectedTrainer.WorkStartTime || endTime.TimeOfDay > selectedTrainer.WorkEndTime)
                 {
                     ModelState.AddModelError("Date",
-                        $"Antrenör {selectedTrainer.FullName} belirtilen saatlerde çalışmıyor. (Mesai: {selectedTrainer.WorkStartTime:hh\\:mm} - {selectedTrainer.WorkEndTime:hh\\:mm}). Randevunuz hocanın çıkış saatini aşıyor.");
+                        $"Antrenör {selectedTrainer.FullName} belirtilen saatlerde çalışmıyor. (Mesai: {selectedTrainer.WorkStartTime:hh\\:mm} - {selectedTrainer.WorkEndTime:hh\\:mm}).");
                 }
 
                 // KURAL 3: HOCA ÇAKIŞMA KONTROLÜ
                 bool isTrainerBusy = await _context.Appointments.AnyAsync(a =>
                     a.TrainerId == appointment.TrainerId &&
                     a.Status != "İptal Edildi" &&
-                    (a.Date < endTime && a.Date.AddMinutes(a.GymService.DurationMinutes) > startTime)
+                    (a.Date < endTime && a.Date.AddMinutes(a.GymService.Sure) > startTime)
                 );
 
                 if (isTrainerBusy)
@@ -139,7 +144,7 @@ namespace GymApp.Controllers
                 bool isUserBusy = await _context.Appointments.AnyAsync(a =>
                     a.UserId == userId &&
                     a.Status != "İptal Edildi" &&
-                    (a.Date < endTime && a.Date.AddMinutes(a.GymService.DurationMinutes) > startTime)
+                    (a.Date < endTime && a.Date.AddMinutes(a.GymService.Sure) > startTime)
                 );
 
                 if (isUserBusy)
@@ -161,8 +166,10 @@ namespace GymApp.Controllers
         }
 
         // ==========================================
-        // DÜZENLEME (EDIT) - SADECE ADMIN
+        // 4. DÜZENLEME (EDIT) - SADECE ADMIN
         // ==========================================
+
+        // GET: Edit
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -173,11 +180,14 @@ namespace GymApp.Controllers
 
             ViewData["GymServiceId"] = new SelectList(_context.GymServices, "ServiceId", "ServiceName", appointment.GymServiceId);
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "Id", "FullName", appointment.TrainerId);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName", appointment.UserId);
+
+            // ÖNEMLİ: Dropdown'da randevunun gerçek sahibi seçili gelsin diye son parametreyi ekledik
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", appointment.UserId);
 
             return View(appointment);
         }
 
+        // POST: Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -201,12 +211,12 @@ namespace GymApp.Controllers
             }
             ViewData["GymServiceId"] = new SelectList(_context.GymServices, "ServiceId", "ServiceName", appointment.GymServiceId);
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "Id", "FullName", appointment.TrainerId);
-            ViewData["UserId"] = new SelectList(_context.Users, "Id", "UserName", appointment.UserId);
+            ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", appointment.UserId);
             return View(appointment);
         }
 
         // ==========================================
-        // SİLME / İPTAL (DELETE) - ADMIN VE SAHİBİ
+        // 5. SİLME / İPTAL (DELETE)
         // ==========================================
 
         // GET: Delete Sayfası
@@ -244,7 +254,6 @@ namespace GymApp.Controllers
                 if (!User.IsInRole("Admin"))
                 {
                     var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    // Başkasının randevusunu silmeye çalışıyorsa durdur
                     if (appointment.UserId != userId) return Forbid();
                 }
 
@@ -254,7 +263,9 @@ namespace GymApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // --- ONAYLAMA VE İPTAL İŞLEMLERİ (SADECE ADMIN) ---
+        // ==========================================
+        // 6. ONAYLAMA VE İPTAL (SADECE ADMIN)
+        // ==========================================
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int id)
@@ -262,10 +273,11 @@ namespace GymApp.Controllers
             var appointment = await _context.Appointments.FindAsync(id);
             if (appointment == null) return NotFound();
 
-            appointment.Status = "Onaylandı"; // Durumu değiştir
-            await _context.SaveChangesAsync(); // Kaydet
+            appointment.Status = "Onaylandı"; // Durumu güncelle
+            _context.Update(appointment);
+            await _context.SaveChangesAsync();
 
-            return RedirectToAction(nameof(Index)); // Listeye dön
+            return RedirectToAction(nameof(Index));
         }
 
         [Authorize(Roles = "Admin")]
@@ -274,7 +286,8 @@ namespace GymApp.Controllers
             var appointment = await _context.Appointments.FindAsync(id);
             if (appointment == null) return NotFound();
 
-            appointment.Status = "İptal Edildi"; // Durumu değiştir
+            appointment.Status = "İptal Edildi"; // Durumu güncelle
+            _context.Update(appointment);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));

@@ -13,12 +13,9 @@ namespace GymApp.Models
 
         [Display(Name = "Açıklama")]
         public string? Description { get; set; }
-
-        // SQL'de Duration değil, DurationMinutes olduğu için değiştirdik:
-        [Required(ErrorMessage = "Süre girmek zorunludur.")]
-        [Display(Name = "Süre (Dakika)")]
-        [Range(1, 480, ErrorMessage = "Süre en az 1 dakika olmalıdır.")]
-        public int DurationMinutes { get; set; }
+        [Required(ErrorMessage = "Lütfen hizmet süresini giriniz.")]
+        [Range(1, 240, ErrorMessage = "Süre en az 1 dakika olmalıdır. En fazla 4 saatlik (240 dk) bir program oluşturulabilir.")]
+        public int Sure { get; set; }
 
         [Required(ErrorMessage = "Ücret girmek zorunludur.")]
         [Display(Name = "Ücret (TL)")]
