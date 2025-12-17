@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims; // Kullanıcı ID'sini bulmak için gerekli
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization; // Yetkilendirme için gerekli
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -70,17 +70,47 @@ namespace GymApp.Controllers
         }
 
         // ==========================================
-        // 3. OLUŞTURMA (CREATE)
+        // 3. OLUŞTURMA (CREATE) & AJAX İŞLEMLERİ
         // ==========================================
 
         // GET: Create
         public IActionResult Create()
         {
-            // Dropdown'larda ID yerine İSİM gözüksün:
-            ViewData["TrainerId"] = new SelectList(_context.Trainers, "Id", "FullName");
+            // Hizmetleri dolduruyoruz
             ViewData["GymServiceId"] = new SelectList(_context.GymServices, "ServiceId", "ServiceName");
 
+            // Antrenör listesini BOŞ gönderiyoruz. Kullanıcı hizmet seçince JS dolduracak.
+            ViewData["TrainerId"] = new SelectList(Enumerable.Empty<SelectListItem>(), "Id", "FullName");
+
             return View();
+        }
+
+        // ★ AJAX 1: Hizmete Göre Hocaları Getir
+        [HttpGet]
+        public JsonResult GetTrainersByService(int serviceId)
+        {
+            var trainers = _context.TrainerServices
+                .Where(ts => ts.GymServiceId == serviceId)
+                .Select(ts => new
+                {
+                    id = ts.Trainer.Id,
+                    fullName = ts.Trainer.FullName
+                })
+                .ToList();
+
+            return Json(trainers);
+        }
+
+        // ★ AJAX 2: Hizmetin Fiyat ve Süresini Getir (YENİ EKLENDİ)
+        [HttpGet]
+        public async Task<JsonResult> GetServiceDetails(int serviceId)
+        {
+            var service = await _context.GymServices.FindAsync(serviceId);
+
+            if (service == null) return Json(null);
+
+            // Fiyatı ve süreyi JSON olarak döndür
+            return Json(new { price = service.Price, duration = service.Sure });
         }
 
         // POST: Create
@@ -160,6 +190,7 @@ namespace GymApp.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+            // Hata olursa sayfayı tekrar yükle
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "Id", "FullName", appointment.TrainerId);
             ViewData["GymServiceId"] = new SelectList(_context.GymServices, "ServiceId", "ServiceName", appointment.GymServiceId);
             return View(appointment);
@@ -180,8 +211,6 @@ namespace GymApp.Controllers
 
             ViewData["GymServiceId"] = new SelectList(_context.GymServices, "ServiceId", "ServiceName", appointment.GymServiceId);
             ViewData["TrainerId"] = new SelectList(_context.Trainers, "Id", "FullName", appointment.TrainerId);
-
-            // ÖNEMLİ: Dropdown'da randevunun gerçek sahibi seçili gelsin diye son parametreyi ekledik
             ViewData["UserId"] = new SelectList(_context.Users, "Id", "Email", appointment.UserId);
 
             return View(appointment);

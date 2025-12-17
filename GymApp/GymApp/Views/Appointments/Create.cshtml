@@ -1,60 +1,59 @@
 ﻿@model GymApp.Models.Appointment
 
 @{
-    ViewData["Title"] = "Randevu Al";
+    ViewData["Title"] = "Yeni Randevu Al";
 }
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-header bg-primary text-white text-center py-3 rounded-top-4">
+                    <h4 class="mb-0 fw-bold"><i class="bi bi-calendar-plus me-2"></i>Yeni Randevu Oluştur</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form asp-action="Create">
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger shadow-sm" role="alert"></div>
 
-<div class="row justify-content-center mt-4">
-    <div class="col-md-6">
-        <div class="card shadow">
-            <div class="card-header bg-primary text-white">
-                <h3 class="mb-0">📅 Yeni Randevu Oluştur</h3>
-            </div>
+                        <div class="mb-4">
+                            <label asp-for="Date" class="form-label fw-bold text-muted">Randevu Tarihi ve Saati</label>
 
-            <div class="card-body">
-                <form asp-action="Create">
+                            <input asp-for="Date" id="datetimepicker" class="form-control form-control-lg shadow-sm bg-white" type="text" placeholder="Tarih ve Saat Seçiniz..." readonly />
 
-                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ContainsKey(""))
-                    {
-                        <div class="alert alert-danger">
-                            <div asp-validation-summary="ModelOnly"></div>
+                            <span asp-validation-for="Date" class="text-danger small"></span>
                         </div>
-                    }
 
-                    <div class="form-group mb-3">
-                        <label asp-for="Date" class="control-label fw-bold">Randevu Tarihi</label>
+                        <div class="mb-4">
+                            <label asp-for="GymServiceId" class="form-label fw-bold text-muted">Hizmet Seçiniz</label>
+                            <select asp-for="GymServiceId" class="form-select form-select-lg shadow-sm" asp-items="ViewBag.GymServiceId">
+                                <option value="">-- Hizmet Seçin --</option>
+                            </select>
 
-                        <input asp-for="Date" class="form-control bg-white" id="randevuTarihi" type="text"
-                               placeholder="Tarih ve Saat Seçiniz..." required />
+                            <div id="serviceInfoArea" class="mt-2" style="display:none;">
+                                <span class="badge bg-success fs-6 p-2 w-100 d-flex justify-content-between align-items-center">
+                                    <span><i class="bi bi-clock me-1"></i> <span id="durationText">0</span> dk</span>
+                                    <span class="fw-bold"><i class="bi bi-wallet2 me-1"></i> Ücret: <span id="priceText">0</span> ₺</span>
+                                </span>
+                            </div>
+                        </div>
 
-                        <span asp-validation-for="Date" class="text-danger"></span>
-                        <small class="text-muted d-block mt-1">
-                            ℹ️ Çalışma Saatleri: <strong>09:00 - 23:00</strong> arasındadır.
-                        </small>
-                    </div>
+                        <div class="mb-4">
+                            <label asp-for="TrainerId" class="form-label fw-bold text-muted">Antrenör Seçiniz</label>
+                            <select asp-for="TrainerId" class="form-select form-select-lg shadow-sm" asp-items="ViewBag.TrainerId">
+                                <option value="">-- Önce Hizmet Seçiniz --</option>
+                            </select>
+                        </div>
 
-                    <div class="form-group mb-3">
-                        <label class="control-label fw-bold">Hizmet Seçiniz</label>
-                        <select asp-for="GymServiceId" class="form-control" asp-items="ViewBag.GymServiceId"></select>
-                    </div>
-
-                    <div class="form-group mb-3">
-                        <label class="control-label fw-bold">Antrenör Seçiniz</label>
-                        <select asp-for="TrainerId" class="form-control" asp-items="ViewBag.TrainerId"></select>
-                    </div>
-
-                    <div class="form-group mt-4">
-                        <button type="submit" class="btn btn-success w-100 py-2 fw-bold shadow-sm">
-                            ✅ Randevuyu Onayla
-                        </button>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card-footer text-center">
-                <a asp-action="Index" class="btn btn-outline-secondary">🔙 Listeye Dön</a>
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow fw-bold">
+                                <i class="bi bi-check-lg me-2"></i>Randevuyu Onayla
+                            </button>
+                            <a asp-action="Index" class="btn btn-light btn-lg rounded-pill border">İptal</a>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
@@ -67,18 +66,68 @@
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
-
     <script>
-        // Takvimi Başlatıyoruz
-        flatpickr("#randevuTarihi", {
-            enableTime: true,       // Saat seçimi açık
-            time_24hr: true,        // İŞTE ÇÖZÜM: 24 Saat Formatı Zorunlu
-            dateFormat: "Y-m-d H:i",// Gönderilecek format (Yıl-Ay-Gün Saat:Dakika)
-            locale: "tr",           // Türkçe dil
-            minDate: "today",       // Geçmiş tarih seçilemez
-            minTime: "00:00",       // Sabah 9'dan önce seçilemez
-            maxTime: "23:00",       // Akşam 11'den sonra seçilemez
-            minuteIncrement: 1     // Dakikalar 30'ar artsın (İsteğe bağlı, silebilirsin)
+        $(document).ready(function () {
+
+            // --- 1. TAKVİM AYARLARI (FLATPICKR) ---
+            flatpickr("#datetimepicker", {
+                enableTime: true,           // Saat seçimi aktif
+                dateFormat: "Y-m-d H:i",    // Format: Yıl-Ay-Gün Saat:Dakika
+                minDate: "today",           // Geçmiş tarihleri kapat
+                minTime: "09:00",           // Salon açılış saati
+                maxTime: "23:00",           // Salon kapanış saati
+                time_24hr: true,            // 24 saat formatı
+                locale: "tr",               // Türkçe dil
+                disableMobile: "true"       // Mobilde de kendi arayüzünü kullan
+            });
+
+            // --- 2. HİZMET & HOCA FİLTRELEME (AJAX) ---
+            $("#GymServiceId").change(function () {
+                var serviceId = $(this).val();
+                var trainerSelect = $("#TrainerId");
+                var infoArea = $("#serviceInfoArea");
+
+                trainerSelect.empty();
+                infoArea.hide();
+
+                if (serviceId) {
+                    // Hocaları Getir
+                    trainerSelect.append('<option value="">Hocalar Yükleniyor...</option>');
+                    $.ajax({
+                        url: '/Appointments/GetTrainersByService',
+                        type: 'GET',
+                        data: { serviceId: serviceId },
+                        success: function (data) {
+                            trainerSelect.empty();
+                            if (data.length === 0) {
+                                trainerSelect.append('<option value="">Bu hizmet için uygun hoca yok</option>');
+                            } else {
+                                trainerSelect.append('<option value="">Lütfen Antrenör Seçiniz</option>');
+                                $.each(data, function (i, trainer) {
+                                    trainerSelect.append('<option value="' + trainer.id + '">' + trainer.fullName + '</option>');
+                                });
+                            }
+                        }
+                    });
+
+                    // Fiyat ve Süre Getir
+                    $.ajax({
+                        url: '/Appointments/GetServiceDetails',
+                        type: 'GET',
+                        data: { serviceId: serviceId },
+                        success: function (data) {
+                            if (data) {
+                                $("#priceText").text(data.price);
+                                $("#durationText").text(data.duration);
+                                infoArea.fadeIn();
+                            }
+                        }
+                    });
+
+                } else {
+                    trainerSelect.append('<option value="">-- Önce Hizmet Seçiniz --</option>');
+                }
+            });
         });
     </script>
 }

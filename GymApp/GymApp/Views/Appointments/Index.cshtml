@@ -31,6 +31,7 @@
                         <tr>
                             <th class="py-3 ps-4">Tarih & Saat</th>
                             <th class="py-3">Hizmet</th>
+                            <th class="py-3">Ücret</th>
                             <th class="py-3">Antrenör</th>
                             <th class="py-3 text-center">Durum</th>
 
@@ -56,6 +57,12 @@
                                     <span class="badge bg-light text-dark border">
                                         <i class="bi bi-activity me-1"></i>
                                         @(item.GymService != null ? item.GymService.ServiceName : "Silinmiş Hizmet")
+                                    </span>
+                                </td>
+
+                                <td>
+                                    <span class="fw-bold text-success">
+                                        @(item.GymService != null ? item.GymService.Price + " ₺" : "-")
                                     </span>
                                 </td>
 
@@ -112,6 +119,7 @@
                                             </a>
                                         }
 
+                                   
                                         @if (item.Status != "İptal Edildi")
                                         {
                                             <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger" title="İptal Et / Sil">

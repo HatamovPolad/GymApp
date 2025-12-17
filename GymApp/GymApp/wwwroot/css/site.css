@@ -213,3 +213,30 @@ h1, h2, h3, h4, h5, h6 {
     align-items: center;
     justify-content: center;
 }
+    #theme-toggle:hover {
+        background-color: #ffc107;
+        box-shadow: 0 8px 20px rgba(255, 193, 7, 0.5);
+    }
+
+/* Sarı etiketlerin içindeki yazı, tema ne olursa olsun her zaman SİYAH kalmalı */
+.badge.bg-warning {
+    color: #000000 !important;
+    font-weight: 700; /* Daha kalın ve okunaklı olsun */
+}
+
+/* Eğer başka renk rozetler kullanırsan (Örn: Açık Mavi) onlar için de siyah yazı: */
+.badge.bg-info, .badge.bg-light {
+    color: #000000 !important;
+}
+
+/* Arka planı açık renk (light) olan rozetlerin yazısı her zaman SİYAH olsun */
+.badge.bg-light {
+    color: #000000 !important;
+    font-weight: bold;
+}
+
+/* Tablo içindeki hizmet rozeti daha belirgin olsun */
+.table .badge {
+    font-size: 0.9rem;
+    padding: 8px 12px;
+}

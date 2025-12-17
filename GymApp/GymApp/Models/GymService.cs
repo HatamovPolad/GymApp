@@ -21,5 +21,6 @@ namespace GymApp.Models
         [Display(Name = "Ücret (TL)")]
         [Range(0, 100000, ErrorMessage = "Ücret 0'dan küçük olamaz.")]
         public decimal Price { get; set; }
+        public ICollection<TrainerService> TrainerServices { get; set; }
     }
 }
