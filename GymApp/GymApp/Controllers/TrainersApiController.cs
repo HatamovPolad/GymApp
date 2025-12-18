@@ -17,7 +17,7 @@ namespace GymApp.Controllers
         }
 
         // GET: api/TrainersApi
-        // Tüm antrenörleri JSON olarak döndürür (LINQ Select Kullanımı)
+        // LINQ Kullanımı
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetTrainers()
         {
