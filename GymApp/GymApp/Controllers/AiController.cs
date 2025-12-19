@@ -44,7 +44,7 @@ namespace GymApp.Controllers
             ViewBag.Height = height;
 
             // Prompt Hazırla
-            string userPrompt = $"Ben {age} yaşında, {weight} kilo, {height} cm boyunda, {gender} cinsiyetinde bir bireyim. " +
+            string userPrompt = $"{age} yaşında, {weight} kilo, {height} cm boyunda, {gender} cinsiyetinde bir bireyim. " +
                                 $"Hedefim: {goal}. " +
                                 $"Bana profesyonel bir spor hocası gibi: " +
                                 $"1. Haftalık antrenman programı. " +
