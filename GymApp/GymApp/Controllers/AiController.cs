@@ -27,7 +27,7 @@ namespace GymApp.Controllers
         [HttpPost]
         public async Task<IActionResult> GeneratePlan(int age, int weight, int height, string goal, string gender)
         {
-            // 1. GİZLİ KASADAN ŞİFREYİ OKU
+            // 1. GİZLİ KASADAN ŞİFREYİ OKU 
             string apiKey = _configuration["GoogleApiKey"];
 
             if (string.IsNullOrEmpty(apiKey))
@@ -38,7 +38,7 @@ namespace GymApp.Controllers
 
             string apiUrl = $"https://generativelanguage.googleapis.com/v1beta/models/{ApiModel}:generateContent?key={apiKey}";
 
-            // View verilerini sakla
+            // View verilerini saklamak için ViewBag kullanımı
             ViewBag.Age = age;
             ViewBag.Weight = weight;
             ViewBag.Height = height;
